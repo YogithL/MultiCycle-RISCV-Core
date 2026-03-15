@@ -1,0 +1,33 @@
+# Vivado Process and Debug files
+vivado_pid*.debug
+vivado_pid*.zip
+dfx_runtime.txt
+tclapp/
+2025.2/
+XilinxTclStore/
+*.xml
+
+
+# Vivado Specific Ignores
+*.jou
+*.log
+*.str
+*.backup*
+.Xil/
+xsim.dir/
+*.wdb
+*.vcd
+
+
+# Build/Output files (Optional: keep if you want others to see your bitstream)
+*.bit
+*.bin
+*.sysdef
+*.hwdef
+
+
+# OS and Editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+
