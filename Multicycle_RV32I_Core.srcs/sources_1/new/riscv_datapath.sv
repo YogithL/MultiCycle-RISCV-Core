@@ -47,8 +47,32 @@ module ALU(
     end
     
 endmodule
+
+
+
+//Makesure to reset Regs in Sim
+module RegFile(
+    input logic clk,
+    input logic regWrite,
+    input logic[4:0] rd_add, rs1_add, rs2_add,
+    input logic[31:0] data,
+    output logic[31:0] rs1, rs2
+    );
     
+    //Can force to LUT_RAM if neccessary
+    logic[31:0] RegArray[0:31];
     
+    always_ff @ (posedge clk) begin
+        if(regWrite && (rd_add != 5'b0))
+        begin
+            RegArray[rd_add] <= data; 
+        end
+    end
+    
+    assign rs1 = (rs1_add == 5'b0) ? 32'b0 : RegArray[rs1_add];
+    assign rs2 = (rs2_add == 5'b0) ? 32'b0 : RegArray[rs2_add];
+
+endmodule
    
     
     
