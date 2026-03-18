@@ -5,11 +5,13 @@ module ALU(
     input logic [31:0] A, B,
     input ALU_Opps ALU_Opp,
     output logic [31:0] out,
-    output logic [3:0] NZVC,
-    output logic branchEnable
+    output logic [3:0] NZVC
     );
     
     always_comb begin
+        out = 32'b0;
+        NZVC = 4'b0000;
+        
         case(ALU_Opp)
             ALU_ADD: out = A + B;
             ALU_SUB: out = A - B;
@@ -33,12 +35,22 @@ module ALU(
         
         NZVC[1] = (out == 32'b0) ? 1'b1 : 1'b0;
         
-        NZVC[2] = (!(A[31] ^ B[31]) && A[31] != out[31]) ? 1'b1 : 1'b0;
+        if(ALU_Opp == ALU_ADD)
+            NZVC[2] = (!(A[31] ^ B[31]) && A[31] != out[31]) ? 1'b1 : 1'b0; //overflow
+        else if (ALU_Opp == ALU_SUB)
+            NZVC[2] = (A[31] != B[31] && out[31] != A[31]) ? 1'b1 : 1'b0; //overflow
         
-        NZVC[3] = (({1'b0, A} + {1'b0, B}) > {1'b0, out}) ? 1'b1 : 1'b0;
+        if(ALU_Opp == ALU_ADD)        
+            NZVC[3] = (({1'b0, A} + {1'b0, B}) > {1'b0, out}) ? 1'b1 : 1'b0; //carry
+        else if (ALU_Opp == ALU_SUB)
+            NZVC[3] = (B > A) ? 1'b1 : 1'b0; //borrow
     end
     
 endmodule
+    
+    
+   
+    
     
     
     
