@@ -72,10 +72,32 @@ module RegFile(
     assign rs1 = (rs1_add == 5'b0) ? 32'b0 : RegArray[rs1_add];
     assign rs2 = (rs2_add == 5'b0) ? 32'b0 : RegArray[rs2_add];
 
-endmodule
-   
+endmodule    
     
     
+    
+module RAM(
+    input logic clk,
+    input Memory_Flags memFlags,
+    input logic[31:0] addr,
+    input logic[31:0] din,
+    output logic[31:0] dout
+    );
+    
+    logic[31:0] RAM[0:1024];
+    
+    logic[1:0] byteOffset;
+    logic[9:0] wrdAddr;
+    
+    assign byteOffset = addr[1:0];
+    assign wrdAddr = addr[11:2];
+    
+    always_ff @ (posedge clk) begin
+        if(memFlags.memRead)
+            dout <= RAM[wrdAddr];
+        
+        if(memFlags.memWrite) begin
+            RAM[wrdAddr] <= 
     
     
     

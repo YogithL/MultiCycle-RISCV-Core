@@ -50,8 +50,8 @@ package riscv_pkg;
         dataSize dataWidth;
         logic signd;
         logic loadInstr;
-        logic store;
-        logic memWriteInstr;
+        logic storeInstr;
+        logic memWrite;
         logic memRead;
     } Memory_Flags;
     
