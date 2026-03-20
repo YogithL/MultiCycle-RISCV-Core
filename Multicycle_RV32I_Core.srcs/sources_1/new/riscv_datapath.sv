@@ -84,7 +84,7 @@ module RAM(
     output logic[31:0] dout
     );
     
-    logic[31:0] RAM[0:1024];
+    logic[31:0] RAM[0:1023];
     
     logic[1:0] byteOffset;
     logic[9:0] wrdAddr;
@@ -97,9 +97,39 @@ module RAM(
             dout <= RAM[wrdAddr];
         
         if(memFlags.memWrite) begin
-            RAM[wrdAddr] <= 
-    
-    
+            case(memFlags.dataWidth)
+                SZ_Word: begin
+                    RAM[wrdAddr][7:0] <= din[7:0];
+                    RAM[wrdAddr][15:8] <= din[15:8];
+                    RAM[wrdAddr][23:16] <= din[23:16];
+                    RAM[wrdAddr][31:24] <= din[31:24];
+                end    
+                
+                SZ_Half: begin
+                    if(byteOffset == 0) begin
+                        RAM[wrdAddr][7:0] <= din[7:0];
+                        RAM[wrdAddr][15:8] <= din[15:8];
+                    end
+                    
+                    if(byteOffset == 2) begin
+                        RAM[wrdAddr][23:16] <= din[7:0];
+                        RAM[wrdAddr][31:24] <= din[15:8];
+                    end                    
+                end
+                
+                SZ_Byte: begin
+                    case(byteOffset)
+                        2'b00: RAM[wrdAddr][7:0] <= din[7:0];
+                        2'b01: RAM[wrdAddr][15:8] <= din[7:0];
+                        2'b10: RAM[wrdAddr][23:16] <= din[7:0];
+                        2'b11: RAM[wrdAddr][31:24] <= din[7:0];
+                    endcase
+                end
+            endcase
+        end
+   end
+   
+endmodule
     
     
     
