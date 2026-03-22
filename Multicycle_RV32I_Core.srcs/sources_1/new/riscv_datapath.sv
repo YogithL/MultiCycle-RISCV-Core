@@ -133,4 +133,52 @@ endmodule
     
     
     
+module ROM(
+    input logic clk,
+    input logic[31:0] PC,
+    output logic[31:0] dout
+    );
+    
+    logic [31:0] ROM[0:1023];
+    logic[9:0] wrdAddr;
+    
+    assign wrdAddr = PC[11:2];
+    
+    initial begin
+        $readmemh("program.mem", ROM);
+    end
+    
+    always_ff @ (posedge clk) begin
+        dout <= ROM[wrdAddr];
+    end
+    
+endmodule
+    
+   
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
