@@ -158,11 +158,39 @@ endmodule
 
 module dataExtender(
     input Memory_Flags memFlags,
-    input[31:0] din
+    input logic[31:0] din,
+    input logic[31:0] addr,
+    output logic[31:0] dout
     );
     
+    logic [31:0] shiftedDin;
+    
     always_comb begin
-        if(memFlags.
+        shiftedDin = din >> 8*(addr[1:0]); 
+        
+        if(memFlags.loadInstr)
+        begin
+            case(memFlags.dataWidth)
+                SZ_Word: dout = shiftedDin;
+                
+                SZ_Half: dout = memFlags.signd ? { {16{shiftedDin[15]}}, shiftedDin[15:0]} 
+                : { {16{1'b0}}, shiftedDin[15:0]};
+                
+                SZ_Byte: dout = memFlags.signd ? { {24{shiftedDin[7]}}, shiftedDin[7:0]} 
+                : { {24{1'b0}}, shiftedDin[7:0]};
+            
+                default: dout = shiftedDin;
+            endcase
+        end
+        
+        else dout = shiftedDin;
+   end
+   
+endmodule
+
+
+
+
 
     
     
