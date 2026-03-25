@@ -153,6 +153,20 @@ module ROM(
     end
     
 endmodule
+
+
+
+module dataExtender(
+    input Memory_Flags memFlags,
+    input[31:0] din
+    );
+    
+    always_comb begin
+        if(memFlags.
+
+    
+    
+    
     
    
     
