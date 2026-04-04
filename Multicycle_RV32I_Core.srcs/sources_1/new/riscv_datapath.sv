@@ -1,6 +1,5 @@
 import riscv_pkg::*;
 
-//Makesure to assign ALU_Opp = {IR[30],ALU_Opp} in TOP
 module ALU(
     input logic [31:0] A, B,
     input ALU_Opps ALU_Opp,
@@ -207,7 +206,86 @@ module ImmGen(
         endcase
     end
         
-endmodule           
+endmodule       
+
+
+
+module Decoder(
+    input logic[31:0] instr,
+    input riscv_pkg :: opcodes opcode,
+    output riscv_pkg :: ALU_Flags ALU_Flag,
+    output riscv_pkg :: dataSize dataWidth,
+    output riscv_pkg :: Memory_Flags Memory_Flag
+    );
+    
+    always_comb begin
+        case(instr[6:0])
+            OP_Reg, OP_Imm: begin
+                if(instr[5] == 1'b1)
+                    ALU_Flag.ALU_SelectB = 2'b00;
+                else
+                    ALU_Flag.ALU_SelectB = 2'b11;
+                    
+                ALU_Flag.ALU_Opp = ALU_Opps'{instr[30], instr[14:12]};
+            end
+            
+            OP_Load: begin
+                Memory_Flag.loadInstr = 1'b1;
+                
+                if(instr[14:12] < 2) 
+                    Memory_Flag.signd = 1'b1;
+                else
+                    Memory_Flag.signd = 1'b0;
+                
+                case(instr[14:12])
+                    3'b000: Memory_Flag.dataWidth = SZ_Byte; 
+                    3'b001: Memory_Flag.dataWidth = SZ_Half;
+                    3'b010: Memory_Flag.dataWidth = SZ_Word;
+                    3'b100: Memory_Flag.dataWidth = SZ_Byte;
+                    3'b101: Memory_Flag.dataWidth = SZ_Half;
+                endcase
+            end
+            
+            //Handle saving PC in FSM
+            OP_JALR, OP_Branch, OP_AUIPC: begin
+                ALU_Flag.ALU_Opp = ALU_ADD;
+                ALU_Flag.ALU_SelectA = 1'b1; //Select PC
+                ALU_Flag.ALU_SelectB = 2'b11; //Select ImmGen
+            end
+            
+            OP_Store: begin
+                Memory_Flag.loadInstr = 1'b0;
+                
+                case(instr[14:12])
+                    3'b000: Memory_Flag.dataWidth = SZ_Byte; 
+                    3'b001: Memory_Flag.dataWidth = SZ_Half;
+                    3'b010: Memory_Flag.dataWidth = SZ_Word;
+                endcase
+            end
+            
+            //Handle saving PC in FSM
+            OP_JAL: begin
+                Memory_Flag.upperImm = 1'b1;
+                ALU_Flag.ALU_Opp = ALU_ADD;
+                ALU_Flag.ALU_SelectA = 1'b0; //Select Reg
+                ALU_Flag.ALU_SelectB = 2'b11; //Select ImmGen
+            end
+            
+            OP_LUI: begin
+                Memory_Flag.upperImm = 1'b1;
+            end
+        endcase
+    end
+endmodule
+            
+                
+                
+
+            
+
+                    
+                 
+    
         
 
 

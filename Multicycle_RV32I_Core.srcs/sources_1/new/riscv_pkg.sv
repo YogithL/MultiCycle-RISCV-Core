@@ -1,5 +1,5 @@
 package riscv_pkg;
-
+//Regmux remeber 
     typedef enum logic[2:0]
     {
         FETCH_ADDR,
@@ -81,27 +81,19 @@ package riscv_pkg;
         logic signd;
         logic loadInstr;
         logic storeInstr;
+        logic upperImm;
         logic memWrite;
         logic memRead;
     } Memory_Flags;
-    
-    typedef struct packed
-    {
-        logic register;
-        logic RegStore;
-        logic RegLoad;
-        logic [1:0] RegMux;
-    } Register_Flags;
-    
+        
     typedef struct packed
     {
         logic branch;
         logic jump;
-        logic upperImm;
         logic PC_Load;
         logic IR_Write;
         logic branchEnable;
-        logic TR_Load;
+        logic ALU_Out;
     } Control_Flags;
     
     
