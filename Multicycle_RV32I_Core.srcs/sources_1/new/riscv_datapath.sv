@@ -212,27 +212,40 @@ endmodule
 
 module Decoder(
     input logic[31:0] instr,
-    input riscv_pkg :: opcodes opcode,
+    output riscv_pkg :: opcodes opcode,
     output riscv_pkg :: ALU_Flags ALU_Flag,
     output riscv_pkg :: dataSize dataWidth,
     output riscv_pkg :: Memory_Flags Memory_Flag
     );
     
+    assign opcode = opcodes'(instr[6:0]);
+    
     always_comb begin
-        case(instr[6:0])
+        ALU_Flag = '0;
+        dataWidth = SZ_Word;
+        Memory_Flag = '0;
+        
+        case(opcode)
             OP_Reg, OP_Imm: begin
                 if(instr[5] == 1'b1)
                     ALU_Flag.ALU_SelectB = 2'b00;
                 else
                     ALU_Flag.ALU_SelectB = 2'b11;
-                    
-                ALU_Flag.ALU_Opp = ALU_Opps'{instr[30], instr[14:12]};
+                
+                //ADD vs SUB and SRA vs SRL
+                if(instr[14:12] == 3'b000 && opcode == OP_Reg || instr[14:12] == 3'b101)
+                    ALU_Flag.ALU_Opp = ALU_Opps'({instr[30], instr[14:12]});
+                else   
+                    ALU_Flag.ALU_Opp = ALU_Opps'({1'b0, instr[14:12]});
             end
             
             OP_Load: begin
                 Memory_Flag.loadInstr = 1'b1;
+                ALU_Flag.ALU_SelectA = 1'b0; //Select Reg
+                ALU_Flag.ALU_SelectB = 2'b11; //Select ImmGen
+                ALU_Flag.ALU_Opp = ALU_ADD;
                 
-                if(instr[14:12] < 2) 
+                if(instr[14:12] <= 2) 
                     Memory_Flag.signd = 1'b1;
                 else
                     Memory_Flag.signd = 1'b0;
@@ -247,14 +260,22 @@ module Decoder(
             end
             
             //Handle saving PC in FSM
-            OP_JALR, OP_Branch, OP_AUIPC: begin
+            OP_JAL, OP_Branch, OP_AUIPC: begin
                 ALU_Flag.ALU_Opp = ALU_ADD;
                 ALU_Flag.ALU_SelectA = 1'b1; //Select PC
                 ALU_Flag.ALU_SelectB = 2'b11; //Select ImmGen
+                
+                if(opcode == OP_AUIPC)
+                    Memory_Flag.upperImm = 1'b1;
+                else
+                    Memory_Flag.upperImm = 1'b0;
             end
             
             OP_Store: begin
                 Memory_Flag.loadInstr = 1'b0;
+                ALU_Flag.ALU_SelectA = 1'b0; //Select Reg
+                ALU_Flag.ALU_SelectB = 2'b11; //Select ImmGen
+                ALU_Flag.ALU_Opp = ALU_ADD; 
                 
                 case(instr[14:12])
                     3'b000: Memory_Flag.dataWidth = SZ_Byte; 
@@ -264,8 +285,7 @@ module Decoder(
             end
             
             //Handle saving PC in FSM
-            OP_JAL: begin
-                Memory_Flag.upperImm = 1'b1;
+            OP_JALR: begin
                 ALU_Flag.ALU_Opp = ALU_ADD;
                 ALU_Flag.ALU_SelectA = 1'b0; //Select Reg
                 ALU_Flag.ALU_SelectB = 2'b11; //Select ImmGen
@@ -273,6 +293,9 @@ module Decoder(
             
             OP_LUI: begin
                 Memory_Flag.upperImm = 1'b1;
+                ALU_Flag.ALU_Opp = ALU_ADD;
+                ALU_Flag.ALU_SelectA = 1'b0; //Select Reg
+                ALU_Flag.ALU_SelectB = 2'b11; //Select ImmGen
             end
         endcase
     end
