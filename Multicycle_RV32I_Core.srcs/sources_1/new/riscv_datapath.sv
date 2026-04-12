@@ -30,7 +30,7 @@ module ALU(
             default:  out = 32'b0;
         endcase
         
-        NZVC[0] = out[31];
+        NZVC[0] = ~|out;
         
         NZVC[1] = (out == 32'b0) ? 1'b1 : 1'b0;
         
@@ -52,7 +52,7 @@ endmodule
 //Makesure to reset Regs in Sim
 module RegFile(
     input logic clk,
-    input logic regWrite,
+    input Control_Flags Control_Flag,
     input logic[4:0] rd_add, rs1_add, rs2_add,
     input logic[31:0] data,
     output logic[31:0] rs1, rs2
@@ -62,7 +62,7 @@ module RegFile(
     logic[31:0] RegArray[0:31];
     
     always_ff @ (posedge clk) begin
-        if(regWrite && (rd_add != 5'b0))
+        if(Control_Flag.Reg_Write && (rd_add != 5'b0))
         begin
             RegArray[rd_add] <= data; 
         end
@@ -300,7 +300,63 @@ module Decoder(
         endcase
     end
 endmodule
-            
+
+
+
+module BranchManager(
+    input riscv_pkg :: Control_Flags Control_Flag,
+    input logic[3:0] NZVC,
+    input branchTypes branchType,
+    input logic[31:0] PC_next,
+    input logic[31:0] target_addr,
+    output logic[31:0] PC
+    );
+    
+    logic branchTaken = 1'b0;
+    
+    always_comb begin
+        case(branchType)
+            BR_BEQ: branchTaken = NZVC[1] ? (1'b1) : (1'b0);
+            BR_BNE: branchTaken = NZVC[1] ? (1'b0) : (1'b1);
+            BR_BLT: branchTaken = NZVC[0] ^ NZVC[2] ? (1'b1) : (1'b0); //Mistake found by UVM missing V check
+            BR_BGE: branchTaken = ~(NZVC[0] ^ NZVC[2]) ? (1'b1) : (1'b0); 
+            BR_BLTU: branchTaken = NZVC[3] ? (1'b1) : (1'b0);
+            BR_BGEU: branchTaken = (~NZVC[3] || NZVC[1]) ? (1'b1) : (1'b0);
+            default: branchTaken = 1'b0;
+        endcase
+    end
+    
+    always_comb begin
+        if((branchTaken && Control_Flag.branchEnable) || Control_Flag.jump)
+            PC = target_addr;
+        else
+            PC = PC_next;
+    end
+     
+endmodule
+    
+    
+
+module controller(
+    input logic clk, reset,
+    input logic [3:0] NZVC,
+    input riscv_pkg :: opcodes opcode,
+    
+    input riscv_pkg :: ALU_Flags in_ALU_Flag,
+    input riscv_pkg :: Memory_Flags in_Memory_Flag,
+    
+    output riscv_pkg :: ALU_Flags out_ALU_Flag,
+    output riscv_pkg :: Memory_Flags out_Memory_Flag,
+    output riscv_pkg :: Control_Flags Control_Flag
+    );
+    
+    
+    
+    
+    
+    
+    
+           
                 
                 
 
