@@ -309,11 +309,9 @@ module BranchManager(
     input branchTypes branchType,
     input logic[31:0] PC_next,
     input logic[31:0] target_addr,
-    output logic[31:0] PC
+    output logic branchTaken,
     );
-    
-    logic branchTaken = 1'b0;
-    
+        
     always_comb begin
         case(branchType)
             BR_BEQ: branchTaken = NZVC[1] ? (1'b1) : (1'b0);
@@ -325,32 +323,10 @@ module BranchManager(
             default: branchTaken = 1'b0;
         endcase
     end
-    
-    always_comb begin
-        if((branchTaken && Control_Flag.branchEnable) || Control_Flag.jump)
-            PC = target_addr;
-        else
-            PC = PC_next;
-    end
-     
+         
 endmodule
     
-    
-
-module controller(
-    input logic clk, reset,
-    input logic [3:0] NZVC,
-    input riscv_pkg :: opcodes opcode,
-    
-    input riscv_pkg :: ALU_Flags in_ALU_Flag,
-    input riscv_pkg :: Memory_Flags in_Memory_Flag,
-    
-    output riscv_pkg :: ALU_Flags out_ALU_Flag,
-    output riscv_pkg :: Memory_Flags out_Memory_Flag,
-    output riscv_pkg :: Control_Flags Control_Flag
-    );
-    
-    
+       
     
     
     

@@ -94,6 +94,7 @@ package riscv_pkg;
         logic upperImm;
         logic memWrite;
         logic memRead;
+        logic[1:0] regMux;
     } Memory_Flags;
         
     typedef struct packed
@@ -101,10 +102,12 @@ package riscv_pkg;
         logic branch;
         logic branchEnable;
         logic jump;
-        logic PC_Write;
         logic IR_Write;
         logic Reg_Write;
         logic ALUOut_Write;
+        logic PC_Write;
+        logic oldPC_Write;
+        logic[1:0] PCMux;
     } Control_Flags;
     
     
